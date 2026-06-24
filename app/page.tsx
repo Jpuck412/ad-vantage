@@ -55,7 +55,6 @@ export default function Home() {
   const onDrop = useCallback(
     (event: DragEvent<HTMLDivElement>) => {
       event.preventDefault();
-
       const file = event.dataTransfer.files?.[0];
 
       if (file) {
@@ -90,170 +89,271 @@ export default function Home() {
   const busy = status === "uploading" || status === "analyzing";
 
   return (
-    <main className="min-h-screen px-5 py-10 md:px-10 md:py-16">
-      <div className="mx-auto max-w-4xl">
-        <header className="mb-10">
-          <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.2em] text-signal">
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-signal" />
-            Ad Clarity Next
+    <main className="relative min-h-screen overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 grid-overlay opacity-25" />
+      <div className="pointer-events-none absolute left-[-10%] top-[-10%] h-72 w-72 rounded-full bg-blueGlow/10 blur-3xl" />
+      <div className="pointer-events-none absolute right-[-8%] top-[8%] h-64 w-64 rounded-full bg-signal/10 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-[-8%] left-[30%] h-72 w-72 rounded-full bg-blueGlow/10 blur-3xl" />
+
+      <div className="relative mx-auto max-w-7xl px-5 py-8 md:px-8 md:py-12">
+        <header className="panel-3d rounded-[28px] p-6 md:p-10">
+          <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl">
+              <div className="chip-3d inline-flex items-center gap-2 rounded-full px-4 py-2 font-mono text-[11px] uppercase tracking-[0.22em] text-blueGlow">
+                <span className="inline-block h-2 w-2 rounded-full bg-signal" />
+                Ad Vantage
+              </div>
+
+              <h1 className="mt-5 text-4xl font-semibold tracking-tight md:text-6xl">
+                <span className="hero-metal">Make your creative feel</span>
+                <br />
+                <span className="text-paper">worth spending money on.</span>
+              </h1>
+
+              <p className="mt-5 max-w-2xl text-sm leading-relaxed text-mist md:text-base">
+                Upload an ad screenshot and get a sharp AI read on attention
+                flow, clarity, branding, CTA strength, and conversion readiness.
+                Same brain, better body — now with a richer 3D interface.
+              </p>
+
+              <div className="mt-6 flex flex-wrap gap-3">
+                <div className="chip-3d rounded-2xl px-4 py-3">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
+                    Focus
+                  </p>
+                  <p className="mt-1 text-sm text-paper">Attention map overlays</p>
+                </div>
+
+                <div className="chip-3d rounded-2xl px-4 py-3">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
+                    Decision
+                  </p>
+                  <p className="mt-1 text-sm text-paper">Clear fixes, not vague fluff</p>
+                </div>
+
+                <div className="chip-3d rounded-2xl px-4 py-3">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
+                    Readiness
+                  </p>
+                  <p className="mt-1 text-sm text-paper">Know if the creative is spend-ready</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:w-[380px]">
+              <div className="panel-soft rounded-2xl p-4">
+                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
+                  Style
+                </p>
+                <p className="mt-2 text-sm text-paper">Rustic metal + blue glow</p>
+              </div>
+              <div className="panel-soft rounded-2xl p-4">
+                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
+                  Engine
+                </p>
+                <p className="mt-2 text-sm text-paper">Visual creative intelligence</p>
+              </div>
+              <div className="panel-soft rounded-2xl p-4">
+                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
+                  Output
+                </p>
+                <p className="mt-2 text-sm text-paper">Overlay, score, fixes</p>
+              </div>
+            </div>
           </div>
 
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-paper md:text-5xl">
-            Read your ad before you spend on it.
-          </h1>
-
-          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted md:text-base">
-            Upload an ad screenshot and get an expert AI read on attention
-            flow, message clarity, CTA strength, and conversion readiness.
-          </p>
-
-          <div className="rustic-line mt-6 h-px w-full" />
+          <div className="rustic-line mt-8 h-px w-full" />
         </header>
 
-        {!imageUrl && (
-          <div
-            onDrop={onDrop}
-            onDragOver={(event) => event.preventDefault()}
-            onClick={() => inputRef.current?.click()}
-            className="rustic-panel cursor-pointer p-12 text-center transition-transform hover:-translate-y-0.5 focus-ring md:p-16"
-            role="button"
-            tabIndex={0}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                inputRef.current?.click();
-              }
-            }}
-          >
-            <input
-              ref={inputRef}
-              type="file"
-              accept="image/png,image/jpeg,image/webp,image/gif"
-              className="hidden"
-              onChange={onInputChange}
-            />
-
-            <p className="font-mono text-sm uppercase tracking-[0.15em] text-paper">
-              Drop image, or click to browse
-            </p>
-
-            <p className="mt-2 text-xs text-muted">
-              PNG, JPG, WEBP, or GIF. Max 8MB.
-            </p>
-          </div>
-        )}
-
-        {imageUrl && status !== "done" && (
-          <div className="space-y-4">
-            <div className="overflow-hidden border border-line bg-black shadow-rustic">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={imageUrl}
-                alt="Uploaded creative"
-                className="block h-auto w-full"
+        <section className="mt-8">
+          {!imageUrl && (
+            <div
+              onDrop={onDrop}
+              onDragOver={(event) => event.preventDefault()}
+              onClick={() => inputRef.current?.click()}
+              className="drop-zone cursor-pointer rounded-[28px] p-10 text-center transition-transform duration-200 hover:-translate-y-1 md:p-16"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  inputRef.current?.click();
+                }
+              }}
+            >
+              <input
+                ref={inputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                className="hidden"
+                onChange={onInputChange}
               />
-            </div>
 
-            {busy && (
-              <div className="rustic-panel flex items-center gap-2 p-4 font-mono text-xs text-signal">
-                <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-signal" />
-                {status === "uploading"
-                  ? "Uploading..."
-                  : "Reading the creative..."}
-              </div>
-            )}
+              <div className="mx-auto max-w-2xl">
+                <div className="chip-3d mx-auto inline-flex rounded-full px-4 py-2 font-mono text-[11px] uppercase tracking-[0.18em] text-signal">
+                  Upload creative
+                </div>
 
-            {status === "error" && (
-              <div className="border border-danger/40 bg-danger/10 p-4">
-                <p className="font-mono text-xs text-danger">{error}</p>
-
-                <button
-                  onClick={reset}
-                  className="mt-3 font-mono text-xs text-paper underline focus-ring"
-                >
-                  Try another image
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {status === "done" && result && imageUrl && (
-          <div className="space-y-8">
-            <AttentionOverlay
-              imageUrl={imageUrl}
-              regions={result.attentionRegions}
-            />
-
-            <div className="rustic-panel p-6">
-              <LightMeter score={result.overallScore} />
-
-              <p className="mt-5 text-lg leading-snug text-paper">
-                {result.oneLineVerdict}
-              </p>
-            </div>
-
-            <div className="rustic-panel p-6">
-              <h2 className="mb-2 font-mono text-xs uppercase tracking-[0.15em] text-muted">
-                Dimensions
-              </h2>
-
-              {result.dimensions.map((dimension) => (
-                <DimensionRow key={dimension.key} dim={dimension} />
-              ))}
-            </div>
-
-            <div className="rustic-panel p-6">
-              <h2 className="mb-3 font-mono text-xs uppercase tracking-[0.15em] text-muted">
-                Fixes
-              </h2>
-
-              <ul className="space-y-2">
-                {result.fixes.map((fix, index) => (
-                  <li key={index} className="flex gap-3 text-sm text-paper">
-                    <span className="shrink-0 font-mono text-signal">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-
-                    <span className="leading-relaxed">{fix}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {result.riskFlags.length > 0 && (
-              <div className="border border-danger/40 bg-danger/10 p-6">
-                <h2 className="mb-3 font-mono text-xs uppercase tracking-[0.15em] text-danger">
-                  Risk Flags
+                <h2 className="mt-6 text-3xl font-semibold text-paper md:text-4xl">
+                  Drop your ad here
                 </h2>
 
-                <ul className="space-y-2">
-                  {result.riskFlags.map((flag, index) => (
-                    <li
-                      key={index}
-                      className="text-sm leading-relaxed text-paper"
-                    >
-                      ⚠ {flag}
-                    </li>
-                  ))}
-                </ul>
+                <p className="mt-4 text-sm leading-relaxed text-mist md:text-base">
+                  PNG, JPG, WEBP, or GIF. We’ll analyze the visual hierarchy,
+                  CTA, clarity, and what grabs the eye first.
+                </p>
+
+                <div className="mt-8">
+                  <span className="btn-3d inline-flex rounded-2xl px-6 py-3 font-mono text-xs uppercase tracking-[0.16em] text-paper shadow-emberGlow">
+                    Browse image
+                  </span>
+                </div>
               </div>
-            )}
+            </div>
+          )}
 
-            <button
-              onClick={reset}
-              className="font-mono text-xs uppercase tracking-wider text-muted underline hover:text-signal focus-ring"
-            >
-              Analyze another
-            </button>
-          </div>
-        )}
+          {imageUrl && status !== "done" && (
+            <div className="space-y-4">
+              <div className="panel-3d overflow-hidden rounded-[28px] p-4">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={imageUrl}
+                  alt="Uploaded creative"
+                  className="block h-auto w-full rounded-2xl border border-white/5"
+                />
+              </div>
 
-        <footer className="mt-16 border-t border-line pt-6">
+              {busy && (
+                <div className="panel-soft flex items-center gap-3 rounded-2xl p-4 font-mono text-xs text-blueGlow">
+                  <span className="inline-block h-2.5 w-2.5 animate-pulse rounded-full bg-signal" />
+                  {status === "uploading" ? "Uploading creative..." : "Analyzing visual structure..."}
+                </div>
+              )}
+
+              {status === "error" && (
+                <div className="rounded-2xl border border-danger/40 bg-danger/10 p-4">
+                  <p className="font-mono text-xs text-danger">{error}</p>
+
+                  <button
+                    onClick={reset}
+                    className="mt-3 font-mono text-xs text-paper underline focus-ring"
+                  >
+                    Try another image
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {status === "done" && result && imageUrl && (
+            <div className="mt-2 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+              <div className="space-y-6">
+                <div className="panel-3d rounded-[28px] p-4">
+                  <AttentionOverlay
+                    imageUrl={imageUrl}
+                    regions={result.attentionRegions}
+                  />
+                </div>
+
+                <div className="panel-3d rounded-[28px] p-6">
+                  <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.18em] text-blueGlow">
+                    Precision fixes
+                  </h2>
+
+                  <ul className="space-y-3">
+                    {result.fixes.map((fix, index) => (
+                      <li key={index} className="panel-soft rounded-2xl p-4">
+                        <div className="flex gap-3">
+                          <span className="mt-0.5 inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-signal/15 font-mono text-xs text-signal">
+                            {String(index + 1).padStart(2, "0")}
+                          </span>
+                          <span className="text-sm leading-relaxed text-paper">{fix}</span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {result.riskFlags.length > 0 && (
+                  <div className="rounded-[28px] border border-danger/35 bg-danger/10 p-6 shadow-lift">
+                    <h2 className="mb-3 font-mono text-xs uppercase tracking-[0.18em] text-danger">
+                      Risk flags
+                    </h2>
+
+                    <ul className="space-y-2">
+                      {result.riskFlags.map((flag, index) => (
+                        <li key={index} className="text-sm leading-relaxed text-paper">
+                          ⚠ {flag}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-6">
+                <div className="panel-3d rounded-[28px] p-6">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="font-mono text-xs uppercase tracking-[0.18em] text-blueGlow">
+                        Overall read
+                      </p>
+                      <p className="mt-2 max-w-xs text-sm leading-relaxed text-mist">
+                        Quick creative verdict with a stronger executive feel.
+                      </p>
+                    </div>
+                    <div className="chip-3d rounded-full px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-signal">
+                      Spend signal
+                    </div>
+                  </div>
+
+                  <div className="mt-6">
+                    <LightMeter score={result.overallScore} />
+                  </div>
+
+                  <p className="mt-6 text-lg leading-snug text-paper">
+                    {result.oneLineVerdict}
+                  </p>
+                </div>
+
+                <div className="panel-3d rounded-[28px] p-6">
+                  <h2 className="mb-3 font-mono text-xs uppercase tracking-[0.18em] text-blueGlow">
+                    Dimension breakdown
+                  </h2>
+
+                  {result.dimensions.map((dimension) => (
+                    <DimensionRow key={dimension.key} dim={dimension} />
+                  ))}
+                </div>
+
+                <div className="panel-soft rounded-[28px] p-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="font-mono text-xs uppercase tracking-[0.18em] text-muted">
+                        Next move
+                      </p>
+                      <p className="mt-1 text-sm text-paper">
+                        Upload another creative and compare.
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={reset}
+                      className="btn-3d rounded-2xl px-4 py-2 font-mono text-xs uppercase tracking-[0.14em] text-paper focus-ring"
+                    >
+                      Analyze another
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
+
+        <footer className="mt-10 panel-soft rounded-[24px] p-5">
           <p className="font-mono text-[10px] leading-relaxed text-muted">
-            Ad Clarity Next gives an AI-based expert visual read on creative
-            performance signals. It is not biometric measurement, real
-            eye-tracking, or neuroscience proof. Use it to catch weak creative
-            before media spend.
+            Ad Vantage provides AI-powered creative analysis. It is not real
+            eye-tracking, biometric measurement, or neuroscience proof. Use it
+            to sharpen creative decisions before spending money on traffic.
           </p>
         </footer>
       </div>
