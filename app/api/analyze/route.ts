@@ -5,10 +5,19 @@ import type { AnalysisResult } from "@/lib/types";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-function isValidMediaType(
-  type: string
-): type is "image/jpeg" | "image/png" | "image/gif" | "image/webp" {
-  return ["image/jpeg", "image/png", "image/gif", "image/webp"].includes(type);
+const SUPPORTED_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "video/mp4",
+  "video/webm",
+  "video/quicktime",
+  "video/mpeg"
+];
+
+function isSupportedMediaType(type: string): boolean {
+  return SUPPORTED_TYPES.includes(type);
 }
 
 function cleanJsonText(text: string): string {
@@ -18,6 +27,24 @@ function cleanJsonText(text: string): string {
     .replace(/^```\s*/i, "")
     .replace(/```\s*$/i, "")
     .trim();
+}
+
+function normalizeRegions(result: AnalysisResult): AnalysisResult {
+  const attentionRegions = Array.isArray(result.attentionRegions)
+    ? result.attentionRegions.map((region, index) => ({
+        label: String(region.label || `Region ${index + 1}`),
+        x: Math.max(0, Math.min(96, Number(region.x) || 0)),
+        y: Math.max(0, Math.min(96, Number(region.y) || 0)),
+        width: Math.max(4, Math.min(100, Number(region.width) || 10)),
+        height: Math.max(4, Math.min(100, Number(region.height) || 10)),
+        rank: Number(region.rank) || index + 1
+      }))
+    : [];
+
+  return {
+    ...result,
+    attentionRegions
+  };
 }
 
 export async function POST(req: NextRequest) {
@@ -38,30 +65,38 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No file provided." }, { status: 400 });
     }
 
-    if (!file.type.startsWith("image/")) {
+    const mediaType = file.type;
+    const isVideo = mediaType.startsWith("video/");
+    const isImage = mediaType.startsWith("image/");
+
+    if (!isImage && !isVideo) {
       return NextResponse.json(
         {
           error:
-            "Only image files are supported. Upload a screenshot, image ad, thumbnail, or video key frame."
+            "Only image and video files are supported. Upload an ad screenshot, image ad, thumbnail, or short video creative."
         },
         { status: 400 }
       );
     }
 
-    const mediaType = file.type;
-
-    if (!isValidMediaType(mediaType)) {
+    if (!isSupportedMediaType(mediaType)) {
       return NextResponse.json(
-        { error: `Unsupported image type: ${mediaType}` },
+        { error: `Unsupported media type: ${mediaType}` },
         { status: 400 }
       );
     }
 
-    const maxBytes = 8 * 1024 * 1024;
+    const maxImageBytes = 8 * 1024 * 1024;
+    const maxVideoBytes = 14 * 1024 * 1024;
+    const maxBytes = isVideo ? maxVideoBytes : maxImageBytes;
 
     if (file.size > maxBytes) {
       return NextResponse.json(
-        { error: "Image too large. Max 8MB." },
+        {
+          error: isVideo
+            ? "Video too large. Max 14MB for free inline video testing."
+            : "Image too large. Max 8MB."
+        },
         { status: 400 }
       );
     }
@@ -86,7 +121,7 @@ export async function POST(req: NextRequest) {
                 {
                   text: `${ANALYSIS_SYSTEM_PROMPT}
 
-Analyze this ad creative. Respond with only the JSON object.`
+Analyze this ${isVideo ? "video ad" : "image ad"} creative. Respond with only the JSON object.`
                 },
                 {
                   inline_data: {
@@ -138,7 +173,7 @@ Analyze this ad creative. Respond with only the JSON object.`
       );
     }
 
-    return NextResponse.json(parsed);
+    return NextResponse.json(normalizeRegions(parsed));
   } catch (err: unknown) {
     console.error("Analyze error:", err);
 
