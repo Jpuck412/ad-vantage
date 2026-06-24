@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
 import { ANALYSIS_SYSTEM_PROMPT } from "@/lib/prompt";
 import type { AnalysisResult } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY
-});
 
 function isValidMediaType(
   type: string
@@ -16,11 +11,22 @@ function isValidMediaType(
   return ["image/jpeg", "image/png", "image/gif", "image/webp"].includes(type);
 }
 
+function cleanJsonText(text: string): string {
+  return text
+    .trim()
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/```\s*$/i, "")
+    .trim();
+}
+
 export async function POST(req: NextRequest) {
   try {
-    if (!process.env.ANTHROPIC_API_KEY) {
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    if (!apiKey) {
       return NextResponse.json(
-        { error: "Missing ANTHROPIC_API_KEY environment variable." },
+        { error: "Missing GEMINI_API_KEY environment variable." },
         { status: 500 }
       );
     }
@@ -63,53 +69,71 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const base64 = Buffer.from(arrayBuffer).toString("base64");
 
-    const message = await anthropic.messages.create({
-      model: process.env.ANTHROPIC_MODEL || "claude-3-5-sonnet-latest",
-      max_tokens: 2000,
-      system: ANALYSIS_SYSTEM_PROMPT,
-      messages: [
-        {
-          role: "user",
-          content: [
+    const model = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          contents: [
             {
-              type: "image",
-              source: {
-                type: "base64",
-                media_type: mediaType,
-                data: base64
-              }
-            },
-            {
-              type: "text",
-              text: "Analyze this ad creative. Respond with only the JSON object."
+              role: "user",
+              parts: [
+                {
+                  text: `${ANALYSIS_SYSTEM_PROMPT}
+
+Analyze this ad creative. Respond with only the JSON object.`
+                },
+                {
+                  inline_data: {
+                    mime_type: mediaType,
+                    data: base64
+                  }
+                }
+              ]
             }
-          ]
-        }
-      ]
-    });
+          ],
+          generationConfig: {
+            temperature: 0.2,
+            maxOutputTokens: 2000
+          }
+        })
+      }
+    );
 
-    const textBlock = message.content.find((block) => block.type === "text");
+    const data = await response.json();
 
-    if (!textBlock || textBlock.type !== "text") {
+    if (!response.ok) {
+      const message =
+        data?.error?.message || "Gemini API request failed. Try again.";
+
+      return NextResponse.json({ error: message }, { status: response.status });
+    }
+
+    const text =
+      data?.candidates?.[0]?.content?.parts
+        ?.map((part: { text?: string }) => part.text || "")
+        .join("")
+        .trim() || "";
+
+    if (!text) {
       return NextResponse.json(
-        { error: "Model returned no text analysis. Try again." },
+        { error: "Gemini returned no text analysis. Try again." },
         { status: 502 }
       );
     }
 
-    const cleaned = textBlock.text
-      .trim()
-      .replace(/^```json\s*/i, "")
-      .replace(/^```\s*/i, "")
-      .replace(/```\s*$/i, "");
-
     let parsed: AnalysisResult;
 
     try {
-      parsed = JSON.parse(cleaned);
+      parsed = JSON.parse(cleanJsonText(text));
     } catch {
       return NextResponse.json(
-        { error: "Could not parse model analysis. Try again." },
+        { error: "Could not parse Gemini analysis. Try again." },
         { status: 502 }
       );
     }
