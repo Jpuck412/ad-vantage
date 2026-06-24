@@ -11,7 +11,8 @@ type Status = "idle" | "uploading" | "analyzing" | "done" | "error";
 
 export default function Home() {
   const [status, setStatus] = useState<Status>("idle");
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [mediaUrl, setMediaUrl] = useState<string | null>(null);
+  const [mediaType, setMediaType] = useState<string>("");
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -22,7 +23,8 @@ export default function Home() {
     setStatus("uploading");
 
     const previewUrl = URL.createObjectURL(file);
-    setImageUrl(previewUrl);
+    setMediaUrl(previewUrl);
+    setMediaType(file.type);
 
     const formData = new FormData();
     formData.append("file", file);
@@ -55,6 +57,7 @@ export default function Home() {
   const onDrop = useCallback(
     (event: DragEvent<HTMLDivElement>) => {
       event.preventDefault();
+
       const file = event.dataTransfer.files?.[0];
 
       if (file) {
@@ -77,7 +80,8 @@ export default function Home() {
 
   const reset = () => {
     setStatus("idle");
-    setImageUrl(null);
+    setMediaUrl(null);
+    setMediaType("");
     setResult(null);
     setError(null);
 
@@ -87,6 +91,7 @@ export default function Home() {
   };
 
   const busy = status === "uploading" || status === "analyzing";
+  const isVideo = mediaType.startsWith("video/");
 
   return (
     <main className="relative min-h-screen overflow-hidden">
@@ -100,7 +105,7 @@ export default function Home() {
           <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
               <div className="chip-3d inline-flex items-center gap-2 rounded-full px-4 py-2 font-mono text-[11px] uppercase tracking-[0.22em] text-blueGlow">
-                <span className="inline-block h-2 w-2 rounded-full bg-signal" />
+                <span className="inline-block h-2 w-2 rounded-full bg-signal shadow-emberGlow" />
                 Ad Vantage
               </div>
 
@@ -111,53 +116,67 @@ export default function Home() {
               </h1>
 
               <p className="mt-5 max-w-2xl text-sm leading-relaxed text-mist md:text-base">
-                Upload an ad screenshot and get a sharp AI read on attention
-                flow, clarity, branding, CTA strength, and conversion readiness.
-                Same brain, better body — now with a richer 3D interface.
+                Upload an ad screenshot, image creative, thumbnail, or short
+                video ad. Get a sharp AI read on attention flow, clarity,
+                branding, CTA strength, and conversion readiness.
               </p>
 
               <div className="mt-6 flex flex-wrap gap-3">
                 <div className="chip-3d rounded-2xl px-4 py-3">
                   <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
-                    Focus
+                    Image + Video
                   </p>
-                  <p className="mt-1 text-sm text-paper">Attention map overlays</p>
+                  <p className="mt-1 text-sm text-paper">
+                    Analyze screenshots or clips
+                  </p>
                 </div>
 
                 <div className="chip-3d rounded-2xl px-4 py-3">
                   <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
-                    Decision
+                    Creative Map
                   </p>
-                  <p className="mt-1 text-sm text-paper">Clear fixes, not vague fluff</p>
+                  <p className="mt-1 text-sm text-paper">
+                    Attention zones and flow
+                  </p>
                 </div>
 
                 <div className="chip-3d rounded-2xl px-4 py-3">
                   <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
-                    Readiness
+                    Fix List
                   </p>
-                  <p className="mt-1 text-sm text-paper">Know if the creative is spend-ready</p>
+                  <p className="mt-1 text-sm text-paper">
+                    Specific changes, not fluff
+                  </p>
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:w-[380px]">
-              <div className="panel-soft rounded-2xl p-4">
-                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
-                  Style
-                </p>
-                <p className="mt-2 text-sm text-paper">Rustic metal + blue glow</p>
-              </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:w-[420px]">
               <div className="panel-soft rounded-2xl p-4">
                 <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
                   Engine
                 </p>
-                <p className="mt-2 text-sm text-paper">Visual creative intelligence</p>
+                <p className="mt-2 text-sm text-paper">
+                  Visual creative intelligence
+                </p>
               </div>
+
               <div className="panel-soft rounded-2xl p-4">
                 <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
                   Output
                 </p>
-                <p className="mt-2 text-sm text-paper">Overlay, score, fixes</p>
+                <p className="mt-2 text-sm text-paper">
+                  Score, overlay, fixes
+                </p>
+              </div>
+
+              <div className="panel-soft rounded-2xl p-4">
+                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
+                  Style
+                </p>
+                <p className="mt-2 text-sm text-paper">
+                  Steel blue + ember 3D
+                </p>
               </div>
             </div>
           </div>
@@ -166,7 +185,7 @@ export default function Home() {
         </header>
 
         <section className="mt-8">
-          {!imageUrl && (
+          {!mediaUrl && (
             <div
               onDrop={onDrop}
               onDragOver={(event) => event.preventDefault()}
@@ -183,7 +202,7 @@ export default function Home() {
               <input
                 ref={inputRef}
                 type="file"
-                accept="image/png,image/jpeg,image/webp,image/gif"
+                accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm,video/quicktime,video/mpeg"
                 className="hidden"
                 onChange={onInputChange}
               />
@@ -198,34 +217,48 @@ export default function Home() {
                 </h2>
 
                 <p className="mt-4 text-sm leading-relaxed text-mist md:text-base">
-                  PNG, JPG, WEBP, or GIF. We’ll analyze the visual hierarchy,
-                  CTA, clarity, and what grabs the eye first.
+                  Use PNG, JPG, WEBP, GIF, MP4, WEBM, MOV, or MPEG. For video,
+                  keep it short and lightweight so the free API can process it.
                 </p>
 
                 <div className="mt-8">
                   <span className="btn-3d inline-flex rounded-2xl px-6 py-3 font-mono text-xs uppercase tracking-[0.16em] text-paper shadow-emberGlow">
-                    Browse image
+                    Browse creative
                   </span>
                 </div>
               </div>
             </div>
           )}
 
-          {imageUrl && status !== "done" && (
+          {mediaUrl && status !== "done" && (
             <div className="space-y-4">
               <div className="panel-3d overflow-hidden rounded-[28px] p-4">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={imageUrl}
-                  alt="Uploaded creative"
-                  className="block h-auto w-full rounded-2xl border border-white/5"
-                />
+                {isVideo ? (
+                  <video
+                    src={mediaUrl}
+                    controls
+                    muted
+                    playsInline
+                    className="block h-auto w-full rounded-2xl border border-white/5"
+                  />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={mediaUrl}
+                    alt="Uploaded creative"
+                    className="block h-auto w-full rounded-2xl border border-white/5"
+                  />
+                )}
               </div>
 
               {busy && (
                 <div className="panel-soft flex items-center gap-3 rounded-2xl p-4 font-mono text-xs text-blueGlow">
                   <span className="inline-block h-2.5 w-2.5 animate-pulse rounded-full bg-signal" />
-                  {status === "uploading" ? "Uploading creative..." : "Analyzing visual structure..."}
+                  {status === "uploading"
+                    ? "Uploading creative..."
+                    : isVideo
+                      ? "Analyzing video structure..."
+                      : "Analyzing visual structure..."}
                 </div>
               )}
 
@@ -237,19 +270,20 @@ export default function Home() {
                     onClick={reset}
                     className="mt-3 font-mono text-xs text-paper underline focus-ring"
                   >
-                    Try another image
+                    Try another creative
                   </button>
                 </div>
               )}
             </div>
           )}
 
-          {status === "done" && result && imageUrl && (
+          {status === "done" && result && mediaUrl && (
             <div className="mt-2 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
               <div className="space-y-6">
                 <div className="panel-3d rounded-[28px] p-4">
                   <AttentionOverlay
-                    imageUrl={imageUrl}
+                    mediaUrl={mediaUrl}
+                    mediaType={mediaType}
                     regions={result.attentionRegions}
                   />
                 </div>
@@ -266,7 +300,10 @@ export default function Home() {
                           <span className="mt-0.5 inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-signal/15 font-mono text-xs text-signal">
                             {String(index + 1).padStart(2, "0")}
                           </span>
-                          <span className="text-sm leading-relaxed text-paper">{fix}</span>
+
+                          <span className="text-sm leading-relaxed text-paper">
+                            {fix}
+                          </span>
                         </div>
                       </li>
                     ))}
@@ -281,7 +318,10 @@ export default function Home() {
 
                     <ul className="space-y-2">
                       {result.riskFlags.map((flag, index) => (
-                        <li key={index} className="text-sm leading-relaxed text-paper">
+                        <li
+                          key={index}
+                          className="text-sm leading-relaxed text-paper"
+                        >
                           ⚠ {flag}
                         </li>
                       ))}
@@ -297,10 +337,12 @@ export default function Home() {
                       <p className="font-mono text-xs uppercase tracking-[0.18em] text-blueGlow">
                         Overall read
                       </p>
+
                       <p className="mt-2 max-w-xs text-sm leading-relaxed text-mist">
                         Quick creative verdict with a stronger executive feel.
                       </p>
                     </div>
+
                     <div className="chip-3d rounded-full px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-signal">
                       Spend signal
                     </div>
@@ -331,6 +373,7 @@ export default function Home() {
                       <p className="font-mono text-xs uppercase tracking-[0.18em] text-muted">
                         Next move
                       </p>
+
                       <p className="mt-1 text-sm text-paper">
                         Upload another creative and compare.
                       </p>
@@ -351,9 +394,10 @@ export default function Home() {
 
         <footer className="mt-10 panel-soft rounded-[24px] p-5">
           <p className="font-mono text-[10px] leading-relaxed text-muted">
-            Ad Vantage provides AI-powered creative analysis. It is not real
-            eye-tracking, biometric measurement, or neuroscience proof. Use it
-            to sharpen creative decisions before spending money on traffic.
+            Ad Vantage provides AI-powered creative analysis for images and
+            short video ads. It is not real eye-tracking, biometric
+            measurement, or neuroscience proof. Use it to sharpen creative
+            decisions before spending money on traffic.
           </p>
         </footer>
       </div>
