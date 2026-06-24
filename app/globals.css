@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at top left, rgba(180, 138, 70, 0.14), transparent 30%),
+      radial-gradient(circle at bottom right, rgba(207, 202, 192, 0.08), transparent 28%),
+      linear-gradient(135deg, #171615 0%, #211f1c 45%, #171615 100%);
+    color: #e7e3da;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
+  }
+
+  ::selection {
+    background-color: #b48a46;
+    color: #171615;
+  }
+
+  input,
+  button,
+  textarea,
+  select {
+    font: inherit;
+  }
+}
+
+@layer utilities {
+  .focus-ring {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-signal focus-visible:ring-offset-2 focus-visible:ring-offset-ink;
+  }
+
+  .rustic-panel {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015)),
+      #2a2723;
+    border: 1px solid #3a3631;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  }
+
+  .rustic-line {
+    background: linear-gradient(90deg, transparent, #b48a46, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
